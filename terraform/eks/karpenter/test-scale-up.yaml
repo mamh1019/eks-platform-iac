@@ -1,0 +1,42 @@
+# NodePool 최대 노드 수 테스트 (app-api max 3)
+# 3레플 + anti-affinity → 서로 다른 노드 3대 요구 → Karpenter가 최대 3대까지 프로비저닝
+# 적용: kubectl apply -f test-scale-up.yaml
+# 확인: kubectl get pods -w && kubectl get nodeclaims && kubectl get nodes
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-scale-app-api
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: test-scale-app-api
+  template:
+    metadata:
+      labels:
+        app: test-scale-app-api
+    spec:
+      nodeSelector:
+        nodepool: app-api
+        kubernetes.io/arch: arm64
+      tolerations:
+        - key: nodepool
+          operator: Equal
+          value: app-api
+          effect: NoSchedule
+      # 서로 다른 노드에 배치되도록 (노드 3대 띄우기 트리거)
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: test-scale-app-api
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: pause
+          image: public.ecr.aws/eks-distro/kubernetes/pause:3.9
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi

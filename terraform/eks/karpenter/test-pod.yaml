@@ -1,0 +1,24 @@
+# Karpenter NodePool 트리거용 테스트 파드 (app-web 풀)
+# 적용: kubectl apply -f test-pod.yaml
+# 확인: kubectl get pods -w && kubectl get nodeclaims && kubectl get nodes
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-karpenter-app-web
+  namespace: default
+spec:
+  nodeSelector:
+    nodepool: app-web
+    kubernetes.io/arch: arm64
+  tolerations:
+    - key: nodepool
+      operator: Equal
+      value: app-web
+      effect: NoSchedule
+  containers:
+    - name: pause
+      image: public.ecr.aws/eks-distro/kubernetes/pause:3.9
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
