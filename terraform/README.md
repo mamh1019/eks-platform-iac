@@ -8,7 +8,7 @@
 
 ---
 
-## Remote State (S3 + DynamoDB)
+## Remote State (S3)
 
 State는 S3에 저장되고 S3 네이티브 잠금(`use_lockfile`)으로 locking됩니다. (Terraform 1.10+, DynamoDB 불필요)
 
